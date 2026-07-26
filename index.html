@@ -664,7 +664,7 @@
         </div>
 
         <p class="hero-date gold-text">19 &bull; Setembro &bull; 2026</p>
-        <p class="hero-sub">Solicitamos a honra de sua presença</p>
+        <p class="hero-sub" id="hero-sub">Solicitamos a honra de sua presença</p>
       </div>
     </div>
 
@@ -885,6 +885,15 @@
     );
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
+    // Saudação e estado do convite pessoal
+    if (TEM_CONVITE_PESSOAL) {
+      const rep = CONVIDADOS[FAMILIA_INDEX].familia;
+      document.getElementById('hero-sub').textContent = 'Convite especial para ' + rep;
+      const entryHint = document.querySelector('.entry-hint');
+      if (entryHint) entryHint.textContent = rep;
+      carregarEstadoFamilia();
+    }
+
     // ===== Partículas douradas cintilantes =====
     (function sprinkle() {
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -998,64 +1007,100 @@
 
     // 2) LISTA DE CONVIDADOS por família — SUBSTITUA pelos nomes reais.
     const CONVIDADOS = [
-      { familia: 'Charles Renan', membros: ['Charles Renan', 'Thaiane Porto', 'Marianna Porto'] },
-      { familia: 'Carlos Carrelly', membros: ['Carlos Carrelly', 'Geane Lemos'] },
-      { familia: 'Valdemar Alexandre', membros: ['Valdemar Alexandre', 'Luzanira Alexandre', 'Valdenira Alexandre (Mãe)', 'Valdênio Alexandre'] },
-      { familia: 'Leosvaldo', membros: ['Leosvaldo', 'Vânia Alexandre'] },
-      { familia: 'Pedro Porto (Avô)', membros: ['Pedro Porto (Avô)', 'Mônica Porto', 'Iuri Pereira (Tio)', 'Iuri Filho'] },
-      { familia: 'Pedro Porto Júnior (Pai)', membros: ['Pedro Porto Júnior (Pai)', 'Ivanilde'] },
-      { familia: 'Saulo', membros: ['Saulo', 'Carla Mônica', 'Sophie'] },
-      { familia: 'Vera Porto', membros: ['Vera Porto', 'Geovanni', 'Vitória Porto'] },
-      { familia: 'Pedro Henrique', membros: ['Pedro Henrique', 'Victória Forte'] },
-      { familia: 'Felipe Porto', membros: ['Felipe Porto', 'Paula Félix'] },
-      { familia: 'Kildery', membros: ['Kildery', 'Vitória Moreira Porto'] },
-      { familia: 'Juliana Lopes', membros: ['Juliana Lopes'] },
-      { familia: 'Cintia Paula', membros: ['Cintia Paula'] },
-      { familia: 'Marlon Paiva', membros: ['Marlon Paiva', 'Alana Carvalho'] },
-      { familia: 'Thiago Arrais', membros: ['Thiago Arrais', 'Gabriela Farias', 'Agnes', 'Thomás', 'Malu', 'Aquiles'] },
-      { familia: 'Márcio Ângelo', membros: ['Márcio Ângelo', 'Bárbara Viana', 'Mariáh', 'Murillo'] },
-      { familia: 'Kilderlan Sousa', membros: ['Kilderlan Sousa', 'Valéria Fernandes'] },
-      { familia: 'Glauber Santos', membros: ['Glauber Santos', 'Érica Vanessa'] },
-      { familia: 'Ícaro Daniel', membros: ['Ícaro Daniel', 'Thiago Lima'] },
-      { familia: 'Emannuely Araújo', membros: ['Emannuely Araújo'] },
-      { familia: 'Naerton Menezes', membros: ['Naerton Menezes', 'Michelliny Vasconcelos'] },
-      { familia: 'Erlânio Matoso', membros: ['Erlânio Matoso', 'Aretha Cunha'] },
-      { familia: 'Diassis Silva', membros: ['Diassis Silva', 'Judigleide Ernesto'] },
-      { familia: 'Raphael Viana', membros: ['Raphael Viana', 'Aline Viana', 'Serena Viana'] },
-      { familia: 'Cristianne Vasconcelos', membros: ['Cristianne Vasconcelos'] },
-      { familia: 'Anderson Mikaell', membros: ['Anderson Mikaell', 'Sâmia Greominiano'] },
-      { familia: 'Alexandre Silva', membros: ['Alexandre Silva', 'Danielle Rocha', 'Luiz Eduardo', 'Gabrielle'] },
-      { familia: 'Irlete Rocha', membros: ['Irlete Rocha', 'Michelle Rocha', 'Rosy Martins'] },
-      { familia: 'Valdirley Loiola', membros: ['Valdirley Loiola', 'Giselle Rocha', 'Maria Eduarda'] },
-      { familia: 'Emiliana Rocha', membros: ['Emiliana Rocha', 'Liz'] },
-      { familia: 'Paulo Neto', membros: ['Paulo Neto', 'Priscilla Rocha', 'Matheus Rocha'] },
-      { familia: 'Cilda Silva', membros: ['Cilda Silva'] },
-      { familia: 'Joselita Ernesto', membros: ['Joselita Ernesto', 'Jucileide Ernesto', 'Monalisa Simplicio', 'Walef Lins', 'Julaneudo Ernesto'] },
-      { familia: 'Edson Greominiano', membros: ['Edson Greominiano', 'Simone Azevedo'] },
-      { familia: 'Eduardo Greominiano', membros: ['Eduardo Greominiano', 'Juliana Carlos'] },
-      { familia: 'Edmilson Greominiano', membros: ['Edmilson Greominiano', 'Eliene Greominiano'] },
-      { familia: 'Manoel Sousa', membros: ['Manoel Sousa', 'Joziany Evaristo'] },
-      { familia: 'Raimundo Gomes', membros: ['Raimundo Gomes', 'Fátima Chaves'] },
-      { familia: 'Marcos Pina', membros: ['Marcos Pina', 'Luizita Pina'] },
-      { familia: 'Josmilton Mesquita', membros: ['Josmilton Mesquita', 'Lisley Gomes', 'João Arthur', 'Victor'] },
-      { familia: 'Eliezer Arrais', membros: ['Eliezer Arrais', 'Hebia Arrais'] },
-      { familia: 'Diego Perdigão', membros: ['Diego Perdigão', 'Alyne Morais'] },
-      { familia: 'Júnior Pinto', membros: ['Júnior Pinto', 'Esterlena Beserra', 'Gabriel Beserra'] },
-      { familia: 'Samarone Lima', membros: ['Samarone Lima', 'Elaine Goudard'] },
-      { familia: 'Benedito Queiroz', membros: ['Benedito Queiroz', 'Erica Lima', 'Davi', 'Igor', 'Tio Val', 'Tema Lima'] },
-      { familia: 'João Paulo Pinheiro', membros: ['João Paulo Pinheiro', 'Handressa Pinheiro', 'João Filho'] },
-      { familia: 'Helena Pinheiro', membros: ['Helena Pinheiro'] },
-      { familia: 'Davi Greominiano', membros: ['Davi Greominiano', 'Eliza Magalhães', 'Miguel', 'Joaquim'] },
-      { familia: 'Sonja Deubel', membros: ['Sonja Deubel'] },
-      { familia: 'Heike Frank', membros: ['Heike Frank'] },
-      { familia: 'Andrea Teichert', membros: ['Andrea Teichert'] },
-      { familia: 'Mateus Oliveira', membros: ['Mateus Oliveira'] },
+      { familia: 'Charles Renan', slug: 'charles-renan', membros: ['Charles Renan', 'Thaiane Porto', 'Marianna Porto'] },
+      { familia: 'Carlos Carrelly', slug: 'carlos-carrelly', membros: ['Carlos Carrelly', 'Geane Lemos'] },
+      { familia: 'Valdemar Alexandre', slug: 'valdemar-alexandre', membros: ['Valdemar Alexandre', 'Luzanira Alexandre', 'Valdenira Alexandre (Mãe)', 'Valdênio Alexandre'] },
+      { familia: 'Leosvaldo', slug: 'leosvaldo', membros: ['Leosvaldo', 'Vânia Alexandre'] },
+      { familia: 'Pedro Porto (Avô)', slug: 'pedro-porto-avo', membros: ['Pedro Porto (Avô)', 'Mônica Porto', 'Iuri Pereira (Tio)', 'Iuri Filho'] },
+      { familia: 'Pedro Porto Júnior (Pai)', slug: 'pedro-porto-junior-pai', membros: ['Pedro Porto Júnior (Pai)', 'Ivanilde'] },
+      { familia: 'Saulo', slug: 'saulo', membros: ['Saulo', 'Carla Mônica', 'Sophie'] },
+      { familia: 'Vera Porto', slug: 'vera-porto', membros: ['Vera Porto', 'Geovanni', 'Vitória Porto'] },
+      { familia: 'Pedro Henrique', slug: 'pedro-henrique', membros: ['Pedro Henrique', 'Victória Forte'] },
+      { familia: 'Felipe Porto', slug: 'felipe-porto', membros: ['Felipe Porto', 'Paula Félix'] },
+      { familia: 'Kildery', slug: 'kildery', membros: ['Kildery', 'Vitória Moreira Porto'] },
+      { familia: 'Juliana Lopes', slug: 'juliana-lopes', membros: ['Juliana Lopes'] },
+      { familia: 'Cintia Paula', slug: 'cintia-paula', membros: ['Cintia Paula'] },
+      { familia: 'Marlon Paiva', slug: 'marlon-paiva', membros: ['Marlon Paiva', 'Alana Carvalho'] },
+      { familia: 'Thiago Arrais', slug: 'thiago-arrais', membros: ['Thiago Arrais', 'Gabriela Farias', 'Agnes', 'Thomás', 'Malu', 'Aquiles'] },
+      { familia: 'Márcio Ângelo', slug: 'marcio-angelo', membros: ['Márcio Ângelo', 'Bárbara Viana', 'Mariáh', 'Murillo'] },
+      { familia: 'Kilderlan Sousa', slug: 'kilderlan-sousa', membros: ['Kilderlan Sousa', 'Valéria Fernandes'] },
+      { familia: 'Glauber Santos', slug: 'glauber-santos', membros: ['Glauber Santos', 'Érica Vanessa'] },
+      { familia: 'Ícaro Daniel', slug: 'icaro-daniel', membros: ['Ícaro Daniel', 'Thiago Lima'] },
+      { familia: 'Emannuely Araújo', slug: 'emannuely-araujo', membros: ['Emannuely Araújo'] },
+      { familia: 'Naerton Menezes', slug: 'naerton-menezes', membros: ['Naerton Menezes', 'Michelliny Vasconcelos'] },
+      { familia: 'Erlânio Matoso', slug: 'erlanio-matoso', membros: ['Erlânio Matoso', 'Aretha Cunha'] },
+      { familia: 'Diassis Silva', slug: 'diassis-silva', membros: ['Diassis Silva', 'Judigleide Ernesto'] },
+      { familia: 'Raphael Viana', slug: 'raphael-viana', membros: ['Raphael Viana', 'Aline Viana', 'Serena Viana'] },
+      { familia: 'Cristianne Vasconcelos', slug: 'cristianne-vasconcelos', membros: ['Cristianne Vasconcelos'] },
+      { familia: 'Anderson Mikaell', slug: 'anderson-mikaell', membros: ['Anderson Mikaell', 'Sâmia Greominiano'] },
+      { familia: 'Alexandre Silva', slug: 'alexandre-silva', membros: ['Alexandre Silva', 'Danielle Rocha', 'Luiz Eduardo', 'Gabrielle'] },
+      { familia: 'Irlete Rocha', slug: 'irlete-rocha', membros: ['Irlete Rocha', 'Michelle Rocha', 'Rosy Martins'] },
+      { familia: 'Valdirley Loiola', slug: 'valdirley-loiola', membros: ['Valdirley Loiola', 'Giselle Rocha', 'Maria Eduarda'] },
+      { familia: 'Emiliana Rocha', slug: 'emiliana-rocha', membros: ['Emiliana Rocha', 'Liz'] },
+      { familia: 'Paulo Neto', slug: 'paulo-neto', membros: ['Paulo Neto', 'Priscilla Rocha', 'Matheus Rocha'] },
+      { familia: 'Cilda Silva', slug: 'cilda-silva', membros: ['Cilda Silva'] },
+      { familia: 'Joselita Ernesto', slug: 'joselita-ernesto', membros: ['Joselita Ernesto', 'Jucileide Ernesto', 'Monalisa Simplicio', 'Walef Lins', 'Julaneudo Ernesto'] },
+      { familia: 'Edson Greominiano', slug: 'edson-greominiano', membros: ['Edson Greominiano', 'Simone Azevedo'] },
+      { familia: 'Eduardo Greominiano', slug: 'eduardo-greominiano', membros: ['Eduardo Greominiano', 'Juliana Carlos'] },
+      { familia: 'Edmilson Greominiano', slug: 'edmilson-greominiano', membros: ['Edmilson Greominiano', 'Eliene Greominiano'] },
+      { familia: 'Manoel Sousa', slug: 'manoel-sousa', membros: ['Manoel Sousa', 'Joziany Evaristo'] },
+      { familia: 'Raimundo Gomes', slug: 'raimundo-gomes', membros: ['Raimundo Gomes', 'Fátima Chaves'] },
+      { familia: 'Marcos Pina', slug: 'marcos-pina', membros: ['Marcos Pina', 'Luizita Pina'] },
+      { familia: 'Josmilton Mesquita', slug: 'josmilton-mesquita', membros: ['Josmilton Mesquita', 'Lisley Gomes', 'João Arthur', 'Victor'] },
+      { familia: 'Eliezer Arrais', slug: 'eliezer-arrais', membros: ['Eliezer Arrais', 'Hebia Arrais'] },
+      { familia: 'Diego Perdigão', slug: 'diego-perdigao', membros: ['Diego Perdigão', 'Alyne Morais'] },
+      { familia: 'Júnior Pinto', slug: 'junior-pinto', membros: ['Júnior Pinto', 'Esterlena Beserra', 'Gabriel Beserra'] },
+      { familia: 'Samarone Lima', slug: 'samarone-lima', membros: ['Samarone Lima', 'Elaine Goudard'] },
+      { familia: 'Benedito Queiroz', slug: 'benedito-queiroz', membros: ['Benedito Queiroz', 'Erica Lima', 'Davi', 'Igor', 'Tio Val', 'Tema Lima'] },
+      { familia: 'João Paulo Pinheiro', slug: 'joao-paulo-pinheiro', membros: ['João Paulo Pinheiro', 'Handressa Pinheiro', 'João Filho'] },
+      { familia: 'Helena Pinheiro', slug: 'helena-pinheiro', membros: ['Helena Pinheiro'] },
+      { familia: 'Davi Greominiano', slug: 'davi-greominiano', membros: ['Davi Greominiano', 'Eliza Magalhães', 'Miguel', 'Joaquim'] },
+      { familia: 'Sonja Deubel', slug: 'sonja-deubel', membros: ['Sonja Deubel'] },
+      { familia: 'Heike Frank', slug: 'heike-frank', membros: ['Heike Frank'] },
+      { familia: 'Andrea Teichert', slug: 'andrea-teichert', membros: ['Andrea Teichert'] },
+      { familia: 'Mateus Oliveira', slug: 'mateus-oliveira', membros: ['Mateus Oliveira'] },
     ];
 
     const norm = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     const slug = (fi, nome) => 'f' + fi + '-' + norm(nome).replace(/[^a-z0-9]+/g, '-');
     const selecionados = new Set();          // seleção atual no formulário
     let ultimaConfirmacao = new Set();       // quem está confirmado no momento
+
+    // ===== Link personalizado: ?f=slug-da-familia =====
+    const FAMILIA_SLUG = new URLSearchParams(location.search).get('f') || '';
+    const FAMILIA_INDEX = CONVIDADOS.findIndex(f => f.slug === FAMILIA_SLUG);
+    const TEM_CONVITE_PESSOAL = FAMILIA_INDEX >= 0;
+
+    // Só a família do link (ou todas, se o link for genérico)
+    function familiasVisiveis() {
+      return TEM_CONVITE_PESSOAL
+        ? [[FAMILIA_INDEX, CONVIDADOS[FAMILIA_INDEX]]]
+        : CONVIDADOS.map((f, i) => [i, f]);
+    }
+
+    // Ao abrir o convite pessoal, busca no Firebase quem já está confirmado
+    async function carregarEstadoFamilia() {
+      if (!TEM_CONVITE_PESSOAL || !FIREBASE_DB_URL) return;
+      try {
+        const fam = CONVIDADOS[FAMILIA_INDEX];
+        const reqs = fam.membros.map(m =>
+          fetch(FIREBASE_DB_URL.replace(/\/$/, '') + '/confirmacoes/' + slug(FAMILIA_INDEX, m) + '.json')
+            .then(r => r.ok ? r.json() : null).catch(() => null)
+        );
+        const res = await Promise.all(reqs);
+        res.forEach((reg, i) => {
+          if (reg && reg.status === 'confirmado') {
+            const id = FAMILIA_INDEX + '::' + fam.membros[i];
+            ultimaConfirmacao.add(id);
+            selecionados.add(id);
+          }
+        });
+        if (ultimaConfirmacao.size > 0) {
+          document.getElementById('confirm-label').textContent = 'Presença confirmada! ✓';
+          document.getElementById('confirmed-msg').classList.add('show');
+        }
+      } catch (e) { console.error('Falha ao carregar confirmações:', e); }
+    }
 
     function openRsvp() {
       document.getElementById('rsvp-modal').style.display = 'flex';
@@ -1064,8 +1109,16 @@
       if (editando && selecionados.size === 0) ultimaConfirmacao.forEach(id => selecionados.add(id));
       document.getElementById('rsvp-send-label').textContent = editando ? 'Atualizar confirmação' : 'Confirmar';
       document.getElementById('rsvp-cancel').style.display = editando ? 'inline-flex' : 'none';
-      renderGuests(document.getElementById('rsvp-search').value);
-      setTimeout(() => document.getElementById('rsvp-search').focus(), 50);
+
+      // Com convite pessoal, a busca é desnecessária (só a própria família aparece)
+      const busca = document.getElementById('rsvp-search');
+      busca.style.display = TEM_CONVITE_PESSOAL ? 'none' : 'block';
+      if (TEM_CONVITE_PESSOAL) {
+        document.getElementById('rsvp-title').textContent = 'Quem irá ao casamento?';
+        document.querySelector('.rsvp-sub').textContent = 'Marque todos os que estarão presentes.';
+      }
+      renderGuests(busca.value);
+      if (!TEM_CONVITE_PESSOAL) setTimeout(() => busca.focus(), 50);
     }
     function closeRsvp() { document.getElementById('rsvp-modal').style.display = 'none'; }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRsvp(); });
@@ -1074,7 +1127,7 @@
       const q = norm(query || '');
       const list = document.getElementById('rsvp-list');
       let html = '';
-      CONVIDADOS.forEach((fam, fi) => {
+      familiasVisiveis().forEach(([fi, fam]) => {
         const match = !q || norm(fam.familia).includes(q) || fam.membros.some(m => norm(m).includes(q));
         if (!match) return;
         const membros = fam.membros
