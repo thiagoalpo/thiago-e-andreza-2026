@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel dos Noivos — Confirmações</title>
+<meta name="robots" content="noindex, nofollow" />
+<style>
+  :root { --gold:#c9a961; --noir:#0b0805; --ivory:#f7f3e8; --sand:#c9bd9a; --muted:#8d8265; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#060402; color:var(--ivory); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; padding:1.2rem; }
+  h1 { font-size:1.15rem; font-weight:600; color:var(--gold); letter-spacing:.06em; }
+  .sub { color:var(--muted); font-size:.78rem; margin:.3rem 0 1.2rem; }
+  .bar { display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:1rem; }
+  button { background:linear-gradient(105deg,#a3853f,#c9a961,#e2ca8a,#c9a961); color:#12100a; border:none;
+           padding:.7rem 1.1rem; font-size:.78rem; font-weight:700; border-radius:6px; cursor:pointer; }
+  button.ghost { background:transparent; border:1px solid rgba(201,169,97,.5); color:var(--sand); font-weight:500; }
+  button:disabled { opacity:.5; cursor:wait; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:.6rem; margin-bottom:1.2rem; }
+  .card { background:var(--noir); border:1px solid rgba(201,169,97,.3); border-radius:8px; padding:.8rem; text-align:center; }
+  .card b { display:block; font-size:1.7rem; color:var(--gold); font-weight:600; line-height:1.2; }
+  .card span { font-size:.66rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; font-size:.78rem; }
+  th { text-align:left; color:var(--gold); font-weight:600; font-size:.68rem; text-transform:uppercase;
+       letter-spacing:.08em; padding:.5rem .4rem; border-bottom:1px solid rgba(201,169,97,.35); position:sticky; top:0; background:#060402; }
+  td { padding:.55rem .4rem; border-bottom:1px solid rgba(255,255,255,.06); color:var(--sand); vertical-align:top; }
+  td.nome { color:var(--ivory); }
+  .tag { font-size:.64rem; padding:.15rem .45rem; border-radius:999px; white-space:nowrap; font-weight:600; }
+  .ok { background:rgba(76,175,80,.15); color:#8fd694; }
+  .no { background:rgba(244,67,54,.13); color:#e58b84; }
+  .pend { background:rgba(201,169,97,.12); color:var(--sand); }
+  .filters { display:flex; gap:.4rem; margin-bottom:.8rem; flex-wrap:wrap; }
+  .filters button { padding:.4rem .8rem; font-size:.7rem; }
+  .filters button.active { outline:2px solid rgba(201,169,97,.6); }
+  #msg { font-size:.75rem; color:var(--sand); margin-bottom:.8rem; min-height:1.2em; }
+  textarea { width:100%; height:90px; background:var(--noir); color:var(--sand); border:1px solid rgba(201,169,97,.35);
+             border-radius:6px; padding:.6rem; font-size:.72rem; font-family:monospace; margin-bottom:.6rem; }
+  details { margin-bottom:1rem; } summary { cursor:pointer; color:var(--muted); font-size:.75rem; }
+</style>
+</head>
+<body>
+  <h1>Painel dos Noivos</h1>
+  <p class="sub">Confirmações do casamento &middot; Andreza &amp; Thiago &middot; 19/09/2026</p>
+
+  <div class="bar">
+    <button id="load" onclick="carregar()">Atualizar confirmações</button>
+    <button class="ghost" onclick="exportarCSV()">Baixar planilha (CSV)</button>
+    <button class="ghost" onclick="copiar()">Copiar p/ Google Sheets</button>
+    <button class="ghost" id="auto-btn" onclick="toggleAuto()">Auto: ligado</button>
+  </div>
+
+  <details id="det-json">
+    <summary>Abrir dados do banco e colar aqui (funciona sempre)</summary>
+    <div style="margin-top:.6rem">
+      <p style="font-size:.72rem;color:#8d8265;margin-bottom:.6rem">
+        1. Toque em <b>Abrir dados do banco</b> &rarr; a página mostra o JSON.<br>
+        2. Selecione tudo e copie.<br>
+        3. Volte aqui, cole abaixo e toque em <b>Carregar</b>.
+      </p>
+      <button class="ghost" style="margin-bottom:.6rem" onclick="abrirJson()">Abrir dados do banco</button>
+      <textarea id="json-input" placeholder='Cole aqui o conteúdo copiado...'></textarea>
+      <button class="ghost" onclick="carregarColado()">Carregar do JSON colado</button>
+    </div>
+  </details>
+
+  <p id="msg"></p>
+
+  <div class="cards">
+    <div class="card"><b id="c-conf">0</b><span>Confirmados</span></div>
+    <div class="card"><b id="c-canc">0</b><span>Cancelados</span></div>
+    <div class="card"><b id="c-pend">0</b><span>Sem resposta</span></div>
+    <div class="card"><b id="c-tot">0</b><span>Convidados</span></div>
+    <div class="card"><b id="c-fam">0</b><span>Famílias</span></div>
+  </div>
+
+  <div class="filters">
+    <button class="ghost active" onclick="setFiltro('todos',this)">Todos</button>
+    <button class="ghost" onclick="setFiltro('confirmado',this)">Confirmados</button>
+    <button class="ghost" onclick="setFiltro('cancelado',this)">Cancelados</button>
+    <button class="ghost" onclick="setFiltro('pendente',this)">Sem resposta</button>
+  </div>
+
+  <table>
+    <thead><tr><th>Convidado</th><th>Família</th><th>Status</th><th>Atualizado</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+<script>
+const FIREBASE_DB_URL = 'https://convite-casamento-amtp-default-rtdb.firebaseio.com';
+
+const CONVIDADOS = [
+  { familia: 'Charles Renan', slug: 'charles-renan', membros: ['Charles Renan', 'Thaiane Porto', 'Marianna Porto'] },
+  { familia: 'Carlos Carrelly', slug: 'carlos-carrelly', membros: ['Carlos Carrelly', 'Geane Lemos'] },
+  { familia: 'Valdemar Alexandre', slug: 'valdemar-alexandre', membros: ['Valdemar Alexandre', 'Luzanira Alexandre', 'Valdenira Alexandre (Mãe)', 'Valdênio Alexandre'] },
+  { familia: 'Leosvaldo', slug: 'leosvaldo', membros: ['Leosvaldo', 'Vânia Alexandre'] },
+  { familia: 'Pedro Porto (Avô)', slug: 'pedro-porto-avo', membros: ['Pedro Porto (Avô)', 'Mônica Porto', 'Iuri Pereira (Tio)', 'Iuri Filho'] },
+  { familia: 'Pedro Porto Júnior (Pai)', slug: 'pedro-porto-junior-pai', membros: ['Pedro Porto Júnior (Pai)', 'Ivanilde'] },
+  { familia: 'Saulo', slug: 'saulo', membros: ['Saulo', 'Carla Mônica', 'Sophie'] },
+  { familia: 'Vera Porto', slug: 'vera-porto', membros: ['Vera Porto', 'Geovanni', 'Vitória Porto'] },
+  { familia: 'Pedro Henrique', slug: 'pedro-henrique', membros: ['Pedro Henrique', 'Victória Forte'] },
+  { familia: 'Felipe Porto', slug: 'felipe-porto', membros: ['Felipe Porto', 'Paula Félix'] },
+  { familia: 'Kildery', slug: 'kildery', membros: ['Kildery', 'Vitória Moreira Porto'] },
+  { familia: 'Juliana Lopes', slug: 'juliana-lopes', membros: ['Juliana Lopes'] },
+  { familia: 'Cintia Paula', slug: 'cintia-paula', membros: ['Cintia Paula'] },
+  { familia: 'Marlon Paiva', slug: 'marlon-paiva', membros: ['Marlon Paiva', 'Alana Carvalho'] },
+  { familia: 'Thiago Arrais', slug: 'thiago-arrais', membros: ['Thiago Arrais', 'Gabriela Farias', 'Agnes', 'Thomás', 'Malu', 'Aquiles'] },
+  { familia: 'Márcio Ângelo', slug: 'marcio-angelo', membros: ['Márcio Ângelo', 'Bárbara Viana', 'Mariáh', 'Murillo'] },
+  { familia: 'Kilderlan Sousa', slug: 'kilderlan-sousa', membros: ['Kilderlan Sousa', 'Valéria Fernandes'] },
+  { familia: 'Glauber Santos', slug: 'glauber-santos', membros: ['Glauber Santos', 'Érica Vanessa'] },
+  { familia: 'Ícaro Daniel', slug: 'icaro-daniel', membros: ['Ícaro Daniel', 'Thiago Lima'] },
+  { familia: 'Emannuely Araújo', slug: 'emannuely-araujo', membros: ['Emannuely Araújo'] },
+  { familia: 'Naerton Menezes', slug: 'naerton-menezes', membros: ['Naerton Menezes', 'Michelliny Vasconcelos'] },
+  { familia: 'Erlânio Matoso', slug: 'erlanio-matoso', membros: ['Erlânio Matoso', 'Aretha Cunha'] },
+  { familia: 'Diassis Silva', slug: 'diassis-silva', membros: ['Diassis Silva', 'Judigleide Ernesto'] },
+  { familia: 'Raphael Viana', slug: 'raphael-viana', membros: ['Raphael Viana', 'Aline Viana', 'Serena Viana'] },
+  { familia: 'Cristianne Vasconcelos', slug: 'cristianne-vasconcelos', membros: ['Cristianne Vasconcelos'] },
+  { familia: 'Anderson Mikaell', slug: 'anderson-mikaell', membros: ['Anderson Mikaell', 'Sâmia Greominiano'] },
+  { familia: 'Alexandre Silva', slug: 'alexandre-silva', membros: ['Alexandre Silva', 'Danielle Rocha', 'Luiz Eduardo', 'Gabrielle'] },
+  { familia: 'Irlete Rocha', slug: 'irlete-rocha', membros: ['Irlete Rocha', 'Michelle Rocha', 'Rosy Martins'] },
+  { familia: 'Valdirley Loiola', slug: 'valdirley-loiola', membros: ['Valdirley Loiola', 'Giselle Rocha', 'Maria Eduarda'] },
+  { familia: 'Emiliana Rocha', slug: 'emiliana-rocha', membros: ['Emiliana Rocha', 'Liz'] },
+  { familia: 'Paulo Neto', slug: 'paulo-neto', membros: ['Paulo Neto', 'Priscilla Rocha', 'Matheus Rocha'] },
+  { familia: 'Cilda Silva', slug: 'cilda-silva', membros: ['Cilda Silva'] },
+  { familia: 'Joselita Ernesto', slug: 'joselita-ernesto', membros: ['Joselita Ernesto', 'Jucileide Ernesto', 'Monalisa Simplicio', 'Walef Lins', 'Julaneudo Ernesto'] },
+  { familia: 'Edson Greominiano', slug: 'edson-greominiano', membros: ['Edson Greominiano', 'Simone Azevedo'] },
+  { familia: 'Eduardo Greominiano', slug: 'eduardo-greominiano', membros: ['Eduardo Greominiano', 'Juliana Carlos'] },
+  { familia: 'Edmilson Greominiano', slug: 'edmilson-greominiano', membros: ['Edmilson Greominiano', 'Eliene Greominiano'] },
+  { familia: 'Manoel Sousa', slug: 'manoel-sousa', membros: ['Manoel Sousa', 'Joziany Evaristo'] },
+  { familia: 'Raimundo Gomes', slug: 'raimundo-gomes', membros: ['Raimundo Gomes', 'Fátima Chaves'] },
+  { familia: 'Marcos Pina', slug: 'marcos-pina', membros: ['Marcos Pina', 'Luizita Pina'] },
+  { familia: 'Josmilton Mesquita', slug: 'josmilton-mesquita', membros: ['Josmilton Mesquita', 'Lisley Gomes', 'João Arthur', 'Victor'] },
+  { familia: 'Eliezer Arrais', slug: 'eliezer-arrais', membros: ['Eliezer Arrais', 'Hebia Arrais'] },
+  { familia: 'Diego Perdigão', slug: 'diego-perdigao', membros: ['Diego Perdigão', 'Alyne Morais'] },
+  { familia: 'Júnior Pinto', slug: 'junior-pinto', membros: ['Júnior Pinto', 'Esterlena Beserra', 'Gabriel Beserra'] },
+  { familia: 'Samarone Lima', slug: 'samarone-lima', membros: ['Samarone Lima', 'Elaine Goudard'] },
+  { familia: 'Benedito Queiroz', slug: 'benedito-queiroz', membros: ['Benedito Queiroz', 'Erica Lima', 'Davi', 'Igor', 'Tio Val', 'Tema Lima'] },
+  { familia: 'João Paulo Pinheiro', slug: 'joao-paulo-pinheiro', membros: ['João Paulo Pinheiro', 'Handressa Pinheiro', 'João Filho'] },
+  { familia: 'Helena Pinheiro', slug: 'helena-pinheiro', membros: ['Helena Pinheiro'] },
+  { familia: 'Davi Greominiano', slug: 'davi-greominiano', membros: ['Davi Greominiano', 'Eliza Magalhães', 'Miguel', 'Joaquim'] },
+  { familia: 'Sonja Deubel', slug: 'sonja-deubel', membros: ['Sonja Deubel'] },
+  { familia: 'Heike Frank', slug: 'heike-frank', membros: ['Heike Frank'] },
+  { familia: 'Andrea Teichert', slug: 'andrea-teichert', membros: ['Andrea Teichert'] },
+  { familia: 'Mateus Oliveira', slug: 'mateus-oliveira', membros: ['Mateus Oliveira'] },
+    ];
+
+const norm = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const slug = (fi, nome) => 'f' + fi + '-' + norm(nome).replace(/[^a-z0-9]+/g,'-');
+
+let dados = {};      // slug -> registro
+let filtro = 'todos';
+
+function linhas() {
+  const out = [];
+  CONVIDADOS.forEach((fam, fi) => {
+    fam.membros.forEach(nome => {
+      const reg = dados[slug(fi, nome)];
+      out.push({
+        nome, familia: fam.familia,
+        status: reg ? reg.status : 'pendente',
+        em: reg && reg.atualizadoEm ? new Date(reg.atualizadoEm).toLocaleString('pt-BR') : '—',
+      });
+    });
+  });
+  return out;
+}
+
+function render() {
+  const todas = linhas();
+  const conf = todas.filter(l => l.status === 'confirmado').length;
+  const canc = todas.filter(l => l.status === 'cancelado').length;
+  document.getElementById('c-conf').textContent = conf;
+  document.getElementById('c-canc').textContent = canc;
+  document.getElementById('c-pend').textContent = todas.length - conf - canc;
+  document.getElementById('c-tot').textContent = todas.length;
+  document.getElementById('c-fam').textContent = CONVIDADOS.length;
+
+  const vis = filtro === 'todos' ? todas : todas.filter(l => l.status === filtro);
+  const cls = s => s === 'confirmado' ? 'ok' : s === 'cancelado' ? 'no' : 'pend';
+  const rot = s => s === 'confirmado' ? 'Confirmado' : s === 'cancelado' ? 'Cancelado' : 'Sem resposta';
+  document.getElementById('tbody').innerHTML = vis.map(l =>
+    `<tr><td class="nome">${l.nome}</td><td>${l.familia}</td>` +
+    `<td><span class="tag ${cls(l.status)}">${rot(l.status)}</span></td><td>${l.em}</td></tr>`
+  ).join('') || '<tr><td colspan="4" style="padding:1.4rem;text-align:center;color:#8d8265">Nada aqui.</td></tr>';
+}
+
+function setFiltro(f, btn) {
+  filtro = f;
+  document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+async function carregar(silencioso) {
+  const btn = document.getElementById('load');
+  const msg = document.getElementById('msg');
+  btn.disabled = true;
+  if (!silencioso) msg.innerHTML = 'Consultando o banco...';
+  const url = FIREBASE_DB_URL.replace(/\/$/,'') + '/confirmacoes.json';
+  let diag = '';
+
+  try {
+    const r = await fetch(url);
+    const texto = await r.text();
+
+    if (!r.ok) {
+      // Firebase devolve {"error":"Permission denied"} quando a regra bloqueia
+      let motivo = texto;
+      try { motivo = JSON.parse(texto).error || texto; } catch (e) {}
+      diag = 'Banco respondeu HTTP ' + r.status + ': ' + motivo;
+      if (/permission/i.test(motivo)) {
+        diag += '<br>→ A regra de leitura de /confirmacoes ainda está bloqueada. ' +
+                'Publique a regra e aguarde alguns segundos.';
+      }
+      msg.innerHTML = '<span style="color:#e58b84">' + diag + '</span>';
+      btn.disabled = false;
+      return;
+    }
+
+    const j = JSON.parse(texto);
+
+    if (j === null) {
+      msg.innerHTML = '<span style="color:#c9a961">Leitura funcionando, mas o banco está vazio: ' +
+        'nenhuma confirmação registrada ainda.</span><br>' +
+        '<span style="color:#8d8265">Faça um teste pelo convite (abra um link ?f=... e confirme alguém) ' +
+        'e clique novamente em Atualizar.</span>';
+      dados = {};
+      render();
+      btn.disabled = false;
+      return;
+    }
+
+    dados = j;
+    msg.innerHTML = Object.keys(dados).length + ' registro(s) &middot; atualizado às ' +
+                    new Date().toLocaleTimeString('pt-BR');
+    render();
+  } catch (e) {
+    msg.innerHTML = '<span style="color:#e58b84">Falha de conexão: ' + e.message +
+      '<br>→ Verifique sua internet e se a URL do banco está correta:<br>' + url + '</span>';
+  }
+  btn.disabled = false;
+}
+
+function carregarColado() {
+  try {
+    const txt = document.getElementById('json-input').value.trim();
+    const j = JSON.parse(txt);
+    dados = j.confirmacoes || j;
+    document.getElementById('msg').textContent = Object.keys(dados).length + ' registro(s) carregado(s) do JSON.';
+    render();
+  } catch (e) {
+    document.getElementById('msg').textContent = 'JSON inválido. Confira se colou o conteúdo completo.';
+  }
+}
+
+function csv() {
+  const cab = ['Convidado','Familia','Status','Atualizado em'];
+  const esc = v => '"' + String(v).replace(/"/g,'""') + '"';
+  return [cab.map(esc).join(';')]
+    .concat(linhas().map(l => [l.nome, l.familia,
+      l.status === 'confirmado' ? 'Confirmado' : l.status === 'cancelado' ? 'Cancelado' : 'Sem resposta',
+      l.em].map(esc).join(';'))).join('\r\n');
+}
+
+function exportarCSV() {
+  const blob = new Blob(['\uFEFF' + csv()], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'confirmacoes-casamento.csv';
+  a.click();
+}
+
+function copiar() {
+  const txt = csv().replace(/;/g, '\t').replace(/"/g, '');
+  navigator.clipboard.writeText(txt)
+    .then(() => document.getElementById('msg').textContent = 'Copiado! Cole no Google Sheets (Ctrl+V).')
+    .catch(() => document.getElementById('msg').textContent = 'Não foi possível copiar neste navegador.');
+}
+
+// ===== Atualização automática =====
+let auto = true, timer = null;
+
+function agendar() {
+  clearInterval(timer);
+  if (auto) timer = setInterval(() => { if (!document.hidden) carregar(true); }, 45000);
+}
+
+function toggleAuto() {
+  auto = !auto;
+  document.getElementById('auto-btn').textContent = 'Auto: ' + (auto ? 'ligado' : 'desligado');
+  agendar();
+  if (auto) carregar(true);
+}
+
+// Recarrega ao voltar para a aba
+document.addEventListener('visibilitychange', () => { if (!document.hidden && auto) carregar(true); });
+
+render();
+carregar();
+agendar();
+</script>
+</body>
+</html>
