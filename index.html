@@ -885,15 +885,6 @@
     );
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-    // Saudação e estado do convite pessoal
-    if (TEM_CONVITE_PESSOAL) {
-      const rep = CONVIDADOS[FAMILIA_INDEX].familia;
-      document.getElementById('hero-sub').textContent = 'Convite especial para ' + rep;
-      const entryHint = document.querySelector('.entry-hint');
-      if (entryHint) entryHint.textContent = rep;
-      carregarEstadoFamilia();
-    }
-
     // ===== Partículas douradas cintilantes =====
     (function sprinkle() {
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1264,6 +1255,15 @@
         musicToast('Não foi possível cancelar agora. Verifique a conexão e tente novamente.');
       }
     }
+    // Saudação e estado do convite pessoal
+    if (TEM_CONVITE_PESSOAL) {
+      const rep = CONVIDADOS[FAMILIA_INDEX].familia;
+      document.getElementById('hero-sub').textContent = 'Convite especial para ' + rep;
+      const entryHint = document.querySelector('.entry-hint');
+      if (entryHint) entryHint.textContent = rep;
+      carregarEstadoFamilia();
+    }
+
   </script>
 </body>
 </html>
