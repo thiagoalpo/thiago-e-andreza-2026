@@ -560,6 +560,13 @@
         <path d="M18 7 V36 M30 12 V41" stroke="currentColor" stroke-width="2.2" fill="none"/>
       </g>
 
+      <!-- PIX -->
+      <g id="i-pix">
+        <path d="M15 33 L6 24 L15 15 M33 15 L42 24 L33 33" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 11 L24 4 L31 11 M17 37 L24 44 L31 37" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 18 L24 24 L18 30 M30 18 L24 24 L30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+
       <!-- Presente -->
       <g id="i-gift">
         <rect x="8" y="18" width="32" height="24" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
@@ -824,6 +831,11 @@
           <svg class="btn-i gold-i" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-gift"/></svg> Lista de Presentes
         </a>
 
+        <button class="btn btn-outline" id="pix-btn" onclick="copiarPix()">
+          <svg class="btn-i gold-i" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-pix"/></svg>
+          <span id="pix-label">PIX 85997159337</span>
+        </button>
+
         <button class="btn btn-solid" id="rsvp-btn" onclick="openRsvp()">
           <svg class="btn-i" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-check"/></svg>
           <span id="confirm-label">Confirmar Presença</span>
@@ -1011,6 +1023,40 @@
         });
       } catch (e) {
         console.error('Áudio indisponível:', e);
+      }
+    }
+
+    // ===== Chave PIX =====
+    const CHAVE_PIX = '85997159337';
+
+    function copiarPix() {
+      const label = document.getElementById('pix-label');
+      const mostrarOk = () => {
+        label.textContent = 'Chave PIX copiada!';
+        setTimeout(() => { label.textContent = 'PIX ' + CHAVE_PIX; }, 3000);
+      };
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(CHAVE_PIX).then(mostrarOk).catch(() => copiarAlternativo(mostrarOk));
+      } else {
+        copiarAlternativo(mostrarOk);
+      }
+    }
+
+    // Alternativa para navegadores sem acesso à área de transferência
+    function copiarAlternativo(aoCopiar) {
+      try {
+        const campo = document.createElement('textarea');
+        campo.value = CHAVE_PIX;
+        campo.style.cssText = 'position:fixed;top:-9999px;opacity:0';
+        document.body.appendChild(campo);
+        campo.select();
+        campo.setSelectionRange(0, 99999);
+        const ok = document.execCommand('copy');
+        campo.remove();
+        ok ? aoCopiar() : musicToast('Copie a chave PIX manualmente: ' + CHAVE_PIX);
+      } catch (e) {
+        musicToast('Copie a chave PIX manualmente: ' + CHAVE_PIX);
       }
     }
 
