@@ -207,12 +207,14 @@
     .title-main {
       font-family: 'Cormorant Garamond', serif; font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: .32em; text-indent: .32em;
-      font-size: clamp(2.1rem, 6.8vw, 3.1rem);
+      letter-spacing: .22em; text-indent: .22em;
+      font-size: clamp(1.9rem, 6.2vw, 3.1rem);
       line-height: 1.35;
       max-width: 100%;
-      overflow-wrap: break-word;
-      hyphens: auto;
+      /* Nunca quebrar palavras ao meio: "CASAMENTO" fica sempre inteiro */
+      overflow-wrap: normal;
+      word-break: keep-all;
+      hyphens: none;
     }
     /* Alemão: "Hochzeitseinladung" é uma palavra longa — reduz para caber inteira */
     :root[lang="de"] .title-main {
